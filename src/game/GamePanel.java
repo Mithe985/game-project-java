@@ -11,6 +11,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
@@ -19,6 +23,7 @@ public class GamePanel extends GameWindow implements GameControl, ActionListener
     private LevelDesign level;
     private Bird flappyBird;
     private Timer gameTimer;
+    private BufferedImage titleImage;
 
     private int gameState = 0;
     private boolean isGameStartedPlaying = false;
@@ -35,6 +40,13 @@ public class GamePanel extends GameWindow implements GameControl, ActionListener
         user = new Player("PL-01", "Player 1");
         flappyBird = new Bird(150, screenHeight / 2 - 40, 32, 26);
         level = new LevelDesign();
+
+        try {
+            titleImage = ImageIO.read(new File("src/game/Image.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error: Could not load Image.png. Make sure it's in src/game/");
+        }
 
         gameTimer = new Timer(20, this);
         createUI();
@@ -168,82 +180,109 @@ public class GamePanel extends GameWindow implements GameControl, ActionListener
             g2.setColor(new Color(60, 40, 20));
             g2.drawLine(0, screenHeight - 120, screenWidth, screenHeight - 120);
 
-            Rectangle b = flappyBird.getBody();
-            g2.setColor(new Color(247, 182, 49));
-            g2.fillOval(b.x, b.y, b.width, b.height);
-            g2.setColor(Color.BLACK);
-            g2.drawOval(b.x, b.y, b.width, b.height);
-
-            g2.setColor(new Color(255, 230, 120));
-            g2.fillOval(b.x + 4, b.y + 6, 14, 12);
-            g2.setColor(Color.BLACK);
-            g2.drawOval(b.x + 4, b.y + 6, 14, 12);
-
-            g2.setColor(Color.WHITE);
-            g2.fillOval(b.x + 20, b.y + 4, 8, 8);
-            g2.setColor(Color.BLACK);
-            g2.fillOval(b.x + 24, b.y + 6, 4, 4);
-
-            g2.setColor(new Color(247, 100, 30));
-            int[] xPoints = {b.x + 30, b.x + 39, b.x + 29};
-            int[] yPoints = {b.y + 10, b.y + 13, b.y + 17};
-            g2.fillPolygon(xPoints, yPoints, 3);
-            g2.setColor(Color.BLACK);
-            g2.drawPolygon(xPoints, yPoints, 3);
-
             if (gameState == 0) {
-                g2.setColor(new Color(0, 0, 0, 120));
-                g2.fillRect(120, screenHeight / 2 - 60, 360, 100);
+                if (titleImage != null) {
+                    g2.drawImage(titleImage, 120, 40, 360, 200, this);
+                }
+
+                // গ্রুপটিকে কিছুটা উপরে তুলতে Y কোঅর্ডিনেট ৩১০ করা হলো
+                int contentY = 310; 
+                int birdX = 130;    
                 
-                g2.setFont(gameFont.deriveFont(Font.BOLD, 22f));
+                g2.setColor(new Color(247, 182, 49));
+                g2.fillOval(birdX, contentY, 50, 40);
+                g2.setColor(Color.BLACK);
+                g2.drawOval(birdX, contentY, 50, 40);
+
+                g2.setColor(new Color(255, 230, 120));
+                g2.fillOval(birdX + 6, contentY + 10, 22, 18);
+                g2.setColor(Color.BLACK);
+                g2.drawOval(birdX + 6, contentY + 10, 22, 18);
+
                 g2.setColor(Color.WHITE);
+                g2.fillOval(birdX + 32, contentY + 6, 12, 12);
+                g2.setColor(Color.BLACK);
+                g2.fillOval(birdX + 38, contentY + 10, 6, 6);
+
+                g2.setColor(new Color(247, 100, 30));
+                int[] xP = {birdX + 45, birdX + 58, birdX + 43};
+                int[] yP = {contentY + 16, contentY + 21, contentY + 27};
+                g2.fillPolygon(xP, yP, 3);
+                g2.setColor(Color.BLACK);
+                g2.drawPolygon(xP, yP, 3);
+
+                g2.setColor(new Color(45, 52, 71));
+                g2.setFont(gameFont.deriveFont(Font.BOLD, 24f));
                 String msg = "PRESS [ S ] TO START";
-                int w = g2.getFontMetrics().stringWidth(msg);
-                g2.drawString(msg, (screenWidth - w) / 2, screenHeight / 2);
+                g2.drawString(msg, birdX + 70, contentY + 28); 
                 
-                g2.setFont(gameFont.deriveFont(Font.PLAIN, 13f));
+                g2.setFont(gameFont.deriveFont(Font.PLAIN, 14f));
                 String hint = "Controls: Use UP ARROW to Fly / Jump";
                 int wHint = g2.getFontMetrics().stringWidth(hint);
-                g2.drawString(hint, (screenWidth - wHint) / 2, screenHeight / 2 + 25);
+                g2.drawString(hint, (screenWidth - wHint) / 2, contentY + 75);
                 
-            } else if (gameState == 1) {
-                g2.setFont(gameFont.deriveFont(Font.BOLD, 30f));
-                g2.setColor(new Color(0, 0, 0, 80));
-                g2.drawString("" + user.getScore(), screenWidth / 2 - 8, 52);
-                g2.setColor(Color.WHITE);
-                g2.drawString("" + user.getScore(), screenWidth / 2 - 10, 50);
-
-                if (!isGameStartedPlaying) {
-                    g2.setFont(gameFont.deriveFont(Font.BOLD, 18f));
-                    g2.setColor(new Color(50, 50, 50));
-                    String readyMsg = "Press [ UP ARROW ] to Fly!";
-                    int wReady = g2.getFontMetrics().stringWidth(readyMsg);
-                    g2.drawString(readyMsg, (screenWidth - wReady) / 2, screenHeight / 2 - 80);
-                }
-                
-            } else if (gameState == 2) {
-                g2.setColor(new Color(245, 240, 230));
-                g2.fillRect(150, screenHeight / 2 - 100, 300, 180);
-                g2.setColor(new Color(80, 70, 60));
-                g2.drawRect(150, screenHeight / 2 - 100, 300, 180);
-
-                g2.setFont(gameFont.deriveFont(Font.BOLD, 26f));
-                g2.setColor(new Color(150, 30, 30));
-                String t1 = "GAME OVER";
-                int w1 = g2.getFontMetrics().stringWidth(t1);
-                g2.drawString(t1, (screenWidth - w1) / 2, screenHeight / 2 - 50);
-
-                g2.setFont(gameFont.deriveFont(Font.BOLD, 18f));
-                g2.setColor(Color.DARK_GRAY);
-                String t2 = "Score: " + user.getScore();
-                int w2 = g2.getFontMetrics().stringWidth(t2);
-                g2.drawString(t2, (screenWidth - w2) / 2, screenHeight / 2 - 10);
-
-                g2.setFont(gameFont.deriveFont(Font.PLAIN, 15f));
+            } else {
+                Rectangle b = flappyBird.getBody();
+                g2.setColor(new Color(247, 182, 49));
+                g2.fillOval(b.x, b.y, b.width, b.height);
                 g2.setColor(Color.BLACK);
-                String t3 = "Press [ R ] to Restart Flight";
-                int w3 = g2.getFontMetrics().stringWidth(t3);
-                g2.drawString(t3, (screenWidth - w3) / 2, screenHeight / 2 + 40);
+                g2.drawOval(b.x, b.y, b.width, b.height);
+
+                g2.setColor(new Color(255, 230, 120));
+                g2.fillOval(b.x + 4, b.y + 6, 14, 12);
+                g2.setColor(Color.BLACK);
+                g2.drawOval(b.x + 4, b.y + 6, 14, 12);
+
+                g2.setColor(Color.WHITE);
+                g2.fillOval(b.x + 20, b.y + 4, 8, 8);
+                g2.setColor(Color.BLACK);
+                g2.fillOval(b.x + 24, b.y + 6, 4, 4);
+
+                g2.setColor(new Color(247, 100, 30));
+                int[] xPoints = {b.x + 30, b.x + 39, b.x + 29};
+                int[] yPoints = {b.y + 10, b.y + 13, b.y + 17};
+                g2.fillPolygon(xPoints, yPoints, 3);
+                g2.setColor(Color.BLACK);
+                g2.drawPolygon(xPoints, yPoints, 3);
+
+                if (gameState == 1) {
+                    g2.setFont(gameFont.deriveFont(Font.BOLD, 30f));
+                    g2.setColor(new Color(0, 0, 0, 80));
+                    g2.drawString("" + user.getScore(), screenWidth / 2 - 8, 52);
+                    g2.setColor(Color.WHITE);
+                    g2.drawString("" + user.getScore(), screenWidth / 2 - 10, 50);
+
+                    if (!isGameStartedPlaying) {
+                        g2.setFont(gameFont.deriveFont(Font.BOLD, 18f));
+                        g2.setColor(new Color(50, 50, 50));
+                        String readyMsg = "Press [ UP ARROW ] to Fly!";
+                        int wReady = g2.getFontMetrics().stringWidth(readyMsg);
+                        g2.drawString(readyMsg, (screenWidth - wReady) / 2, screenHeight / 2 - 80);
+                    }
+                } else if (gameState == 2) {
+                    g2.setColor(new Color(245, 240, 230));
+                    g2.fillRect(150, screenHeight / 2 - 100, 300, 180);
+                    g2.setColor(new Color(80, 70, 60));
+                    g2.drawRect(150, screenHeight / 2 - 100, 300, 180);
+
+                    g2.setFont(gameFont.deriveFont(Font.BOLD, 26f));
+                    g2.setColor(new Color(150, 30, 30));
+                    String t1 = "GAME OVER";
+                    int w1 = g2.getFontMetrics().stringWidth(t1);
+                    g2.drawString(t1, (screenWidth - w1) / 2, screenHeight / 2 - 50);
+
+                    g2.setFont(gameFont.deriveFont(Font.BOLD, 18f));
+                    g2.setColor(Color.DARK_GRAY);
+                    String t2 = "Score: " + user.getScore();
+                    int w2 = g2.getFontMetrics().stringWidth(t2);
+                    g2.drawString(t2, (screenWidth - w2) / 2, screenHeight / 2 - 10);
+
+                    g2.setFont(gameFont.deriveFont(Font.PLAIN, 15f));
+                    g2.setColor(Color.BLACK);
+                    String t3 = "Press [ R ] to Restart Flight";
+                    int w3 = g2.getFontMetrics().stringWidth(t3);
+                    g2.drawString(t3, (screenWidth - w3) / 2, screenHeight / 2 + 40);
+                }
             }
         }
     }
